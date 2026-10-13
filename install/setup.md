@@ -54,6 +54,10 @@ python3 -m pip install playwright
 `~/.openclaw/tools/browser/browser_client.py` 导入它。该适配器不包含在仓库内，OpenClaw 主机之外
 使用路线④时，需要自行提供等价适配器；路线①②不受影响。
 
+适配器启动 Chromium 时，在 Ubuntu 23.10+ 等用 AppArmor 限制非特权 user namespace 的系统上，
+需要加 `--no-sandbox`，否则 Chromium 启动即退出（`FATAL: No usable sandbox!`）。该浏览器只打开
+本机 ComfyUI 页面。
+
 ## 1. 底模（3 文件，必需）
 
 HF `Comfy-Org/Qwen-Image-2.1`（经 hf-mirror.com 直连，走代理会 SSL_ERROR）：
@@ -74,7 +78,7 @@ wget -c -P "$COMFY/models/vae" "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/r
 | `qwen2_1-femaledVaginus-nsfw-v1.3-fine.safetensors` (608M) | 路线①备选 | 同上 |
 | `thesealpacas-nsfw-v2.safetensors` (79.7M) | 路线①最露骨 | Civitai model `2958918` |
 | `nsfw-posture-v3.safetensors` (84M) | 路线①姿势增强 | Civitai model `2988215` |
-| `qwen21-nsfw-image-edit.safetensors` (84M) | 路线② | HF `RunningHubAI/Qwen-Image-2.1-NSFW-Image-Edit` |
+| `qwen21-nsfw-image-edit.safetensors` (84M) | 路线② | HF `RunningHubAI/rh-qwen-image-2.1-aio-nsfw-lora`（原 `RunningHubAI/Qwen-Image-2.1-NSFW-Image-Edit` 已失效；下载后改名） |
 | `VNCCS_QI2_PoseStudioV1.1.safetensors` (159M) | 路线④ | HF `MIUProject/VNCCS_PoseStudio_QI2.1` |
 
 Civitai LoRA：打开对应模型页，选择表格里写明的版本和 `.safetensors` 文件，下载后放入
@@ -94,8 +98,8 @@ ls -lh "$COMFY/models/loras"
 HuggingFace：
 
 ```bash
-wget -c -P "$COMFY/models/loras" "https://hf-mirror.com/RunningHubAI/Qwen-Image-2.1-NSFW-Image-Edit/resolve/main/qwen21-nsfw-image-edit.safetensors"
-wget -c -P "$COMFY/models/loras" "https://hf-mirror.com/MIUProject/VNCCS_PoseStudio_QI2.1/resolve/main/LoRAs/VNCCS_QI2_PoseStudioV1.1.safetensors"
+wget -c -O "$COMFY/models/loras/qwen21-nsfw-image-edit.safetensors" "https://hf-mirror.com/RunningHubAI/rh-qwen-image-2.1-aio-nsfw-lora/resolve/main/Qwen-Image-2.1%20NSFW%20Image%20Edit.safetensors"
+wget -c -P "$COMFY/models/loras" "https://hf-mirror.com/MIUProject/VNCCS_PoseStudio_QI2.1/resolve/main/VNCCS_QI2_PoseStudioV1.1.safetensors"
 ```
 
 ## 3. VNCCS_Utils 节点（路线④ 必需）
@@ -103,11 +107,16 @@ wget -c -P "$COMFY/models/loras" "https://hf-mirror.com/MIUProject/VNCCS_PoseStu
 ```bash
 cd "$COMFY/custom_nodes"
 git clone https://github.com/AHEKOT/ComfyUI_VNCCS_Utils.git
+# 在 ComfyUI 使用的 Python 环境里安装节点依赖（见节点的 requirements.txt）；
+# 标准 ComfyUI 环境通常缺这 3 个：
+"$COMFY_PYTHON" -m pip install pytorch-lightning roma "dynamicprompts>=0.31,<1"
 # 重启一次 ComfyUI 让节点加载
 ```
 
-验证：`curl --fail --silent --show-error "$COMFYUI_URL/object_info" | grep -c VNCCS` 应 ≥ 1
-（PoseStudio / PoseLibrary 节点都在）。
+`$COMFY_PYTHON` 指 ComfyUI 实际使用的 Python，例如 `$COMFY/.venv/bin/python`。
+
+验证：`curl --fail --silent --show-error "$COMFYUI_URL/object_info" | grep -o '"VNCCS_PoseStudio"'`
+应输出 `"VNCCS_PoseStudio"`。
 
 ## 4. 姿势库（4 个仓库 + 本包 55 个精选，路线④）
 
@@ -121,16 +130,19 @@ for repo in \
        -H "Content-Type: application/json" \
        --data "{\"repo_id\":\"$repo\"}"
 done
+# 其中两个仓库已是节点内置仓库，add 会返回 400 "Repository already exists"，可忽略
 
 # 刷新下载（首次会拉全部 JSON + webp 预览）
-curl --fail-with-body --silent --show-error -X POST "$COMFYUI_URL/vnccs/pose_library/refresh"
+curl --fail-with-body --silent --show-error -X POST "$COMFYUI_URL/vnccs/pose_library/repositories/refresh" \
+     -H "Content-Type: application/json" --data '{}'
 
 # 本包 55 个精选姿势 → 拷入本地目录（仓库 refresh 不会删本地目录）
 mkdir -p "$VNCCS_POSELIB/local_user_poses"
 cp -a pose_library/local_user_poses/. "$VNCCS_POSELIB/local_user_poses/"
 
 # 验证：应输出 136（81 仓库 + 55 本地）
-curl --fail --silent --show-error "$COMFYUI_URL/vnccs/pose_library/list" | grep -c '"json_file"'
+curl --fail --silent --show-error "$COMFYUI_URL/vnccs/pose_library/list" \
+  | python3 -c "import json,sys; print(len(json.load(sys.stdin)['poses']))"
 ```
 
 > **注意**：`refresh` 会删除远端清单里没有的本地文件。自定义/精选姿势务必放
@@ -159,7 +171,7 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
 
 - [ ] `curl --fail --silent --show-error "$COMFYUI_URL/object_info" >/dev/null` 成功
 - [ ] 按使用路线安装的 LoRA 出现在 `/object_info` 的 `LoraLoaderModelOnly` 选项里
-- [ ] `VNCCS_PoseStudio` / `VNCCS_PoseLibrary` 节点在 `/object_info` 里
+- [ ] `VNCCS_PoseStudio` 节点在 `/object_info` 里
 - [ ] 姿势库数量 = 136
 - [ ] `python3 scripts/validate_package.py` 显示所有静态检查通过
 - [ ] 跑一遍 README 快速开始，`outputs/author_case/shower.png` 生成且
