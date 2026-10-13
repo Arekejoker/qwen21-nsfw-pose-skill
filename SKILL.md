@@ -62,7 +62,7 @@ Outputs land under `./outputs/` (the scripts create directories as needed).
 | Path | Content |
 | --- | --- |
 | `SKILL.md` | this file |
-| `scripts/` | `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `validate_package.py` (offline package integrity check) |
+| `scripts/` | `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `make_custom_pose.py` (new pose from a library pose by bone rotation), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `validate_package.py` (offline package integrity check) |
 | `workflows/` | `qwen21_t2i.json`, `qwen21_edit.json` (official Qwen-Image 2.1 graphs), `VNCCS_PoseStudio_QI2.1.json` |
 | `prompts/` | the 3 author prompts + `.params.json` (the exact local-test settings) |
 | `references/` | `pose_examples/` (L0/L1/L2 seaside examples), `src_standing.png` (default character for route ④) |
@@ -294,6 +294,18 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
 - Output: `./outputs/vnccs_ui/` (override with `VNCCS_UI_OUT`). The 3D doll is a
   bare MakeHuman mannequin — nude prompts + pose transfer can produce nude
   output (expected: the model reads the doll's state).
+- **Custom poses from code:** `scripts/make_custom_pose.py` loads a library
+  pose into the PoseStudio editor, adds bone rotations, and saves through the
+  editor's own Save (JSON + preview in
+  `PoseLibrary/local_user_poses/poses/<category>/`). The new pose works with
+  `run_vnccs_ui.py --pose` at once. `--list-bones` prints the base pose's
+  euler angles; pass the full library id when a name is not unique.
+
+  ```bash
+  python3 scripts/make_custom_pose.py \
+    --base "MIUProject__VNCCS_PoseLibrary_Main/poses/Standing/Standing A" \
+    --name "Arms Out" --rotate upperarm_l:1:90 --rotate upperarm_r:1:-90
+  ```
 - **Pose fidelity caveat:** each pose JSON carries its own `cameraParams`
   (yaw/pitch/zoom); the generated image inherits that viewpoint. Poses whose
   shape only reads from another angle (e.g. a true arabesque's extended back
