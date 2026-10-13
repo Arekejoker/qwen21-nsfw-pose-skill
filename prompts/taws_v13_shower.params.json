@@ -1,0 +1,9 @@
+{
+ "note": "Author: tawsLoRa (FemaledVaginus-NSFW). LoRA inniepussy-v1_0@1.0; we reproduced with v1.3b@1.0. cfg2.5 er_sde/beta 50 steps, seed 80964, 1152x1728.",
+ "steps": 50,
+ "cfg": 2.5,
+ "sampler": "er_sde",
+ "scheduler": "beta",
+ "seed": 80964,
+ "size": "2368x3552 (author native); use 1152x1728 on this box"
+}

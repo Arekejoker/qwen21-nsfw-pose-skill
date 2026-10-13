@@ -1,0 +1,9 @@
+{
+ "note": "Author: TheseAlpacas. Base redqw21_int8 + 5 stacked LoRAs; we reproduced with thesealpacas-v2@0.8 on convrot base. cfg4 er_sde/beta 50 steps.",
+ "steps": 50,
+ "cfg": 4.0,
+ "sampler": "er_sde",
+ "scheduler": "beta",
+ "seed": 124880844757561,
+ "size": "1184x1760 (author native); use 1152x1728 on this box"
+}

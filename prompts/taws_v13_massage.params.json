@@ -1,0 +1,9 @@
+{
+ "note": "Author: tawsLoRa. Same LoRA/params as shower but 30 steps. Low-angle prone pose.",
+ "steps": 30,
+ "cfg": 2.5,
+ "sampler": "er_sde",
+ "scheduler": "beta",
+ "seed": 80964,
+ "size": "2368x3552 (author native); use 1152x1728 on this box"
+}
