@@ -275,8 +275,7 @@ def main() -> int:
             settle(page, 2000)
             saved: list[str] = []
             for i, p in enumerate(got, 1):
-                kind = "doll" if "pose" in p.name else "result"
-                dst = OUT / f"{kind}_{tag}{('' if i == 1 else f'_{i}')}.png"
+                dst = OUT / f"result_{tag}{('' if i == 1 else f'_{i}')}.png"
                 shutil.copy2(p, dst)
                 saved.append(dst.name)
                 print(f"[vnccs-ui] saved {dst.name} ({p.name})")
