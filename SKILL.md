@@ -62,7 +62,7 @@ Outputs land under `./outputs/` (the scripts create directories as needed).
 | Path | Content |
 | --- | --- |
 | `SKILL.md` | this file |
-| `scripts/` | `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled) |
+| `scripts/` | `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `validate_package.py` (offline package integrity check) |
 | `workflows/` | `qwen21_t2i.json`, `qwen21_edit.json` (official Qwen-Image 2.1 graphs), `VNCCS_PoseStudio_QI2.1.json` |
 | `prompts/` | the 3 author prompts + `.params.json` (the exact local-test settings) |
 | `references/` | `pose_examples/` (L0/L1/L2 seaside examples), `src_standing.png` (default character for route ④) |

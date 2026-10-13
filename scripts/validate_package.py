@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Offline integrity checks for the shareable Qwen-Image pose package."""
+from __future__ import annotations
+
+import ast
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+errors: list[str] = []
+
+
+def check(condition: bool, message: str) -> None:
+    if not condition:
+        errors.append(message)
+
+
+python_files = sorted((ROOT / "scripts").glob("*.py"))
+for path in python_files:
+    try:
+        ast.parse(path.read_text(encoding="utf-8"), filename=str(path.relative_to(ROOT)))
+    except (SyntaxError, UnicodeDecodeError) as exc:
+        errors.append(f"Python syntax error in {path.relative_to(ROOT)}: {exc}")
+
+json_dirs = (
+    ROOT / "workflows",
+    ROOT / "prompts",
+    ROOT / "downloads" / "samples",
+    ROOT / "pose_library" / "local_user_poses",
+)
+json_files = sorted(path for directory in json_dirs for path in directory.rglob("*.json"))
+for path in json_files:
+    try:
+        json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        errors.append(f"Invalid JSON in {path.relative_to(ROOT)}: {exc}")
+
+pose_dir = ROOT / "pose_library" / "local_user_poses" / "Uncategorized"
+pose_jsons = sorted(pose_dir.glob("*.json"))
+pose_previews = sorted(pose_dir.glob("*.webp"))
+check(len(pose_jsons) == 55, f"expected 55 curated pose JSONs, found {len(pose_jsons)}")
+check(len(pose_previews) == 55, f"expected 55 pose previews, found {len(pose_previews)}")
+for path in pose_jsons:
+    check(path.with_suffix(".webp").is_file(), f"missing pose preview for {path.name}")
+for path in pose_previews:
+    check(path.with_suffix(".json").is_file(), f"missing pose JSON for {path.name}")
+
+readme = ROOT / "README.md"
+check(readme.is_file(), "missing README.md")
+image_paths: list[str] = []
+if readme.is_file():
+    image_paths = re.findall(r'<img\s+[^>]*src="([^"]+)"', readme.read_text(encoding="utf-8"))
+    check(bool(image_paths), "README.md has no embedded showcase images")
+    for image_path in image_paths:
+        check((ROOT / image_path).is_file(), f"README image does not exist: {image_path}")
+
+for relative in (
+    "SKILL.md",
+    "install/setup.md",
+    "references/src_standing.png",
+    "downloads/samples/phase5_meta.json",
+):
+    check((ROOT / relative).is_file(), f"missing required package file: {relative}")
+
+if errors:
+    for error in errors:
+        print(f"FAIL: {error}", file=sys.stderr)
+    raise SystemExit(1)
+
+print(
+    f"OK: {len(python_files)} Python files, {len(json_files)} JSON files, "
+    f"{len(pose_jsons)} pose JSON/preview pairs, {len(image_paths)} README images"
+)
