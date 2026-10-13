@@ -23,11 +23,14 @@
 
 ### NSFW 效果（⚠️ 以下图片包含裸露内容）
 
-**作者原图**（Civitai showcase，本配方复刻的目标）：
+<details>
+<summary>⚠️ 作者原图（Civitai showcase，本配方复刻的目标；含裸露内容，点击展开）</summary>
 
 | 作者 · 淋浴（tawsLoRa） | 作者 · 按摩（tawsLoRa） | 作者 · 自拍（TheseAlpacas） |
 | --- | --- | --- |
 | <img src="downloads/samples/taws_v13_shower_author.jpg" width="300" /> | <img src="downloads/samples/taws_v13_massage_author.jpg" width="300" /> | <img src="downloads/samples/thesealpacas_v2_selfie_author.jpg" width="300" /> |
+
+</details>
 
 用 §「快速开始」的命令可复刻淋浴那张（复刻输出已验证与作者原图同场景同构图，见 `downloads/samples/phase5_meta.json` 与本文快速开始一节）。
 
