@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Shared media task lock: video rendering is exclusive, image gen is shared.
 
-Policy (see /home/zjh/switch-model.sh + pixelle-local-llm.service):
+Policy (see the deployment's model-switching script/service):
 - Video asset rendering owns the GPU: it takes an EXCLUSIVE lock AND stops the
   local LLM for the duration (LLM must be restored afterwards).
 - Image generation may run concurrently with the LLM, but must WAIT while a

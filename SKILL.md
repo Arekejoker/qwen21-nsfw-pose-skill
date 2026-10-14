@@ -360,3 +360,7 @@ crawling, kneeling side, leaning back, sitting side, squatting leaning back,
 arabesque — the last one verified for output only, pose-shape match unverified),
 pose index count 136 == `GET /vnccs/pose_library/list`, pose-ladder A/B images
 in `references/pose_examples/`.
+
+Follow-up checks 2026-10-14: route ④ `--prompt` (scene follows the prompt, pose
+preserved), bundled browser fallback launch path, and custom pose creation via
+`scripts/make_custom_pose.py` (save + output verified).

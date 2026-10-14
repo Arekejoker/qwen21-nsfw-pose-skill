@@ -6,12 +6,12 @@ load the graph in the shared browser (our own tab), set the character image and
 the pose preset, queue from the UI, then collect the outputs from disk.
 
 Usage:
-    run_vnccs_ui.py --pose crawling [--char inputs/src_standing.png] [--timeout 900]
+    run_vnccs_ui.py --pose crawling [--char /path/to/face.png] [--timeout 900]
+    run_vnccs_ui.py --pose "squatting leaning back" --prompt "on a rooftop at night"
 """
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import os
 import shutil
@@ -22,10 +22,10 @@ from pathlib import Path
 _PKG_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # bundled media_lock.py
 try:
-    from media_lock import media_lock, MediaLockError  # noqa: E402
+    from media_lock import media_lock  # noqa: E402
 except ImportError:  # fall back to the shared-machine helper if present
     sys.path.insert(0, os.path.expanduser("~/.openclaw/tools"))
-    from media_lock import media_lock, MediaLockError  # noqa: E402
+    from media_lock import media_lock  # noqa: E402
 
 # route ④ needs a CDP browser; keep --list-poses usable without one
 try:
@@ -43,7 +43,6 @@ except ImportError:
 
 # ComfyUI-side paths default to $COMFY (or ~/ComfyUI); override individually if needed
 _COMFY = Path(os.environ.get("COMFY") or (Path.home() / "ComfyUI"))
-ROOT = Path(os.environ.get("POSELAB", str(_PKG_DIR)))
 WF_FILE = Path(os.environ.get("VNCCS_WF_FILE", str(_PKG_DIR / "workflows" / "VNCCS_PoseStudio_QI2.1.json")))
 VNCCS_LIB = Path(os.environ.get("VNCCS_POSELIB", str(_COMFY / "custom_nodes" / "ComfyUI_VNCCS_Utils" / "PoseLibrary")))
 COMFY_INPUT = Path(os.environ.get("COMFYUI_INPUT", str(_COMFY / "input")))
@@ -182,7 +181,7 @@ def main() -> int:
                     help="pose name/slug from the PoseLibrary (see --list-poses)")
     ap.add_argument("--char", default=str(_PKG_DIR / "references" / "src_standing.png"))
     ap.add_argument("--prompt", default="",
-                    help="scene prompt for the capture (scene doc export.user_prompt; overrides the workflow default)")
+                    help="scene prompt for the capture: sets the pose prompt + export.user_prompt (overrides the workflow default)")
     ap.add_argument("--timeout", type=int, default=900)
     ap.add_argument("--list-poses", action="store_true", help="print all available pose names and exit")
     a = ap.parse_args()
@@ -191,7 +190,11 @@ def main() -> int:
     if a.list_poses:
         for slug, path in sorted(idx.items()):
             print(f"{slug}\t{path}")
-        print(f"# {sum(1 for k in idx if k.count('/') == 2)} poses (bare aliases not counted)", file=sys.stderr)
+        counts = sum(1 for k in idx if k.count("/") == 2)
+        print(f"# {counts} poses (bare aliases not counted)", file=sys.stderr)
+        if counts == 0:
+            print(f"# nothing under {VNCCS_LIB} — set VNCCS_POSELIB or $COMFY (see install/setup.md §0/§4)",
+                  file=sys.stderr)
         return 0
     if connect_sync is None or sync_playwright is None:
         print("ERROR: route ④ needs a CDP browser client and playwright; install playwright "

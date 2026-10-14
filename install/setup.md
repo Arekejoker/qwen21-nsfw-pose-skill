@@ -138,7 +138,7 @@ done
 curl --fail-with-body --silent --show-error -X POST "$COMFYUI_URL/vnccs/pose_library/repositories/refresh" \
      -H "Content-Type: application/json" --data '{}'
 
-# 本包 55 个精选姿势 → 拷入本地目录（仓库 refresh 不会删本地目录）
+# 本包 55 个精选姿势 → 拷入本地目录（refresh 不会清理 local_user_poses）
 mkdir -p "$VNCCS_POSELIB/local_user_poses"
 cp -a pose_library/local_user_poses/. "$VNCCS_POSELIB/local_user_poses/"
 
@@ -147,8 +147,10 @@ curl --fail --silent --show-error "$COMFYUI_URL/vnccs/pose_library/list" \
   | python3 -c "import json,sys; print(len(json.load(sys.stdin)['poses']))"
 ```
 
-> **注意**：`refresh` 会删除远端清单里没有的本地文件。自定义/精选姿势务必放
-> `PoseLibrary/local_user_poses/<分类>/`（永远列出、永不被自动清理）。
+> **注意**：`refresh` 只清理“该远端仓库目录内、清单里已不存在”的旧文件（见返回的
+> `removed_count`），不碰 `local_user_poses`。自定义/精选姿势放
+> `PoseLibrary/local_user_poses/<分类>/` 即可（编辑器保存的自动写入
+> `local_user_poses/poses/<分类>/`，两种布局都会被列出）。
 
 ## 5. 运行脚本
 
