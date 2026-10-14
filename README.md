@@ -24,7 +24,7 @@
 ### NSFW 效果（⚠️ 以下图片包含裸露内容）
 
 <details>
-<summary><img src="references/author_samples_cover.png" width="600" alt="作者原图（NSFW）· 点击卡片展开" /></summary>
+<summary><picture><img src="references/author_samples_cover.png" width="600" alt="作者原图（NSFW）· 点击卡片展开" /></picture></summary>
 
 **作者原图**（Civitai showcase，本配方复刻的目标）：
 
