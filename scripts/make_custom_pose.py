@@ -25,12 +25,16 @@ import urllib.request
 from pathlib import Path
 
 _PKG_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # bundled browser_fallback.py
 
 try:
     sys.path.insert(0, os.path.expanduser("~/.openclaw/tools/browser"))
     from browser_client import connect_sync  # noqa: E402
-except ImportError:
-    connect_sync = None
+except ImportError:  # standalone hosts: bundled CDP fallback
+    try:
+        from browser_fallback import connect_sync  # noqa: E402
+    except ImportError:
+        connect_sync = None
 try:
     from playwright.sync_api import sync_playwright  # noqa: E402
 except ImportError:
@@ -81,8 +85,9 @@ def main() -> int:
     if not a.list_bones and not a.name:
         ap.error("--name is required unless --list-bones is given")
     if connect_sync is None or sync_playwright is None:
-        print("ERROR: needs the CDP browser client "
-              "(~/.openclaw/tools/browser/browser_client.py) and playwright", file=sys.stderr)
+        print("ERROR: needs a CDP browser client and playwright; install playwright "
+              "(`pip install playwright && playwright install chromium`) or keep the OpenClaw "
+              "adapter at ~/.openclaw/tools/browser/browser_client.py", file=sys.stderr)
         return 2
     try:
         rotations = [parse_rotation(s) for s in a.rotate]

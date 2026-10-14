@@ -84,7 +84,7 @@ python3 scripts/qwen_pose_test.py \
 ```
 ├── SKILL.md            # agent 技能（完整规则）
 ├── install/setup.md    # 安装指南（模型/LoRA/节点/姿势库）
-├── scripts/            # 出图脚本、案例脚本、media_lock.py、validate_package.py
+├── scripts/            # 出图/自定义姿势脚本、浏览器 fallback、media_lock.py、validate_package.py
 ├── workflows/          # qwen21_t2i.json / qwen21_edit.json / VNCCS_PoseStudio_QI2.1.json
 ├── prompts/            # 3 篇作者原提示词 + 参数
 ├── references/         # 效果展示图（L0/L1/L2 海边对照）+ 默认人物图

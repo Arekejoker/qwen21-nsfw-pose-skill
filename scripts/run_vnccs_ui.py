@@ -31,18 +31,23 @@ except ImportError:  # fall back to the shared-machine helper if present
 try:
     sys.path.insert(0, os.path.expanduser("~/.openclaw/tools/browser"))
     from browser_client import connect_sync  # noqa: E402
-except ImportError:
-    connect_sync = None
+except ImportError:  # standalone hosts: bundled CDP fallback
+    try:
+        from browser_fallback import connect_sync  # noqa: E402
+    except ImportError:
+        connect_sync = None
 try:
     from playwright.sync_api import sync_playwright  # noqa: E402
 except ImportError:
     sync_playwright = None
 
+# ComfyUI-side paths default to $COMFY (or ~/ComfyUI); override individually if needed
+_COMFY = Path(os.environ.get("COMFY") or (Path.home() / "ComfyUI"))
 ROOT = Path(os.environ.get("POSELAB", str(_PKG_DIR)))
 WF_FILE = Path(os.environ.get("VNCCS_WF_FILE", str(_PKG_DIR / "workflows" / "VNCCS_PoseStudio_QI2.1.json")))
-VNCCS_LIB = Path(os.environ.get("VNCCS_POSELIB", "/home/zjh/ai/ComfyUI/custom_nodes/ComfyUI_VNCCS_Utils/PoseLibrary"))
-COMFY_INPUT = Path(os.environ.get("COMFYUI_INPUT", "/home/zjh/ai/ComfyUI/input"))
-COMFY_OUTPUT = Path(os.environ.get("COMFYUI_OUTPUT", "/home/zjh/ai/ComfyUI/output"))
+VNCCS_LIB = Path(os.environ.get("VNCCS_POSELIB", str(_COMFY / "custom_nodes" / "ComfyUI_VNCCS_Utils" / "PoseLibrary")))
+COMFY_INPUT = Path(os.environ.get("COMFYUI_INPUT", str(_COMFY / "input")))
+COMFY_OUTPUT = Path(os.environ.get("COMFYUI_OUTPUT", str(_COMFY / "output")))
 OUT = Path(os.environ.get("VNCCS_UI_OUT", str(_PKG_DIR / "outputs" / "vnccs_ui")))
 VNCCS_LORA = "VNCCS_QI2_PoseStudioV1.1.safetensors"
 URL = os.environ.get("COMFYUI_URL", "http://127.0.0.1:8188")
@@ -108,7 +113,7 @@ def resolve_pose(name: str, idx: dict[str, Path]) -> Path:
     raise KeyError(f"pose '{name}' is ambiguous: {[p.stem for p in hits][:6]} — disambiguate with <repo>/<category>/<name>")
 
 
-def prep_workflow(pose_json: str, char_name: str, prefix: str) -> dict:
+def prep_workflow(pose_json: str, char_name: str, prefix: str, user_prompt: str = "") -> dict:
     wf = json.loads(WF_FILE.read_text(encoding="utf-8"))
     by_id = {n["id"]: n for n in wf["nodes"]}
 
@@ -124,7 +129,26 @@ def prep_workflow(pose_json: str, char_name: str, prefix: str) -> dict:
         if n["type"] == "SaveImage" and isinstance(n.get("widgets_values"), list):
             n["widgets_values"][0] = prefix
         if n["type"] == "VNCCS_PoseStudio" and isinstance(n.get("widgets_values"), list):
-            n["widgets_values"][0] = pose_json
+            value = pose_json
+            if user_prompt:
+                # The frontend rebuilds the capture prompt from the scene document's
+                # export block (prompt_template "Draw character from image2\n
+                # <lighting>\n<user_prompt>"), where <user_prompt> comes from the
+                # per-pose prompt. Library pose files carry empty prompt/pose_prompts
+                # fields and no export block, so set all three hydration paths:
+                # pose.prompt (per-tab), pose_prompts[0] (hydrated array) and
+                # export.user_prompt (legacy global default).
+                scene = json.loads(pose_json)
+                scene["prompt"] = user_prompt
+                scene["pose_prompts"] = [user_prompt]
+                try:
+                    export = dict(json.loads(n["widgets_values"][0]).get("export") or {})
+                except (TypeError, ValueError):
+                    export = {}
+                export["user_prompt"] = user_prompt
+                scene["export"] = export
+                value = json.dumps(scene)
+            n["widgets_values"][0] = value
         if n["type"] == "LoraLoaderModelOnly" and isinstance(n.get("widgets_values"), list):
             n["widgets_values"][0] = VNCCS_LORA
     return wf
@@ -157,6 +181,8 @@ def main() -> int:
     ap.add_argument("--pose", default="crawling",
                     help="pose name/slug from the PoseLibrary (see --list-poses)")
     ap.add_argument("--char", default=str(_PKG_DIR / "references" / "src_standing.png"))
+    ap.add_argument("--prompt", default="",
+                    help="scene prompt for the capture (scene doc export.user_prompt; overrides the workflow default)")
     ap.add_argument("--timeout", type=int, default=900)
     ap.add_argument("--list-poses", action="store_true", help="print all available pose names and exit")
     a = ap.parse_args()
@@ -168,8 +194,9 @@ def main() -> int:
         print(f"# {sum(1 for k in idx if k.count('/') == 2)} poses (bare aliases not counted)", file=sys.stderr)
         return 0
     if connect_sync is None or sync_playwright is None:
-        print("ERROR: route ④ needs the CDP browser client "
-              "(~/.openclaw/tools/browser/browser_client.py) and playwright", file=sys.stderr)
+        print("ERROR: route ④ needs a CDP browser client and playwright; install playwright "
+              "(`pip install playwright && playwright install chromium`) or keep the OpenClaw "
+              "adapter at ~/.openclaw/tools/browser/browser_client.py", file=sys.stderr)
         return 2
     try:
         pose_path = resolve_pose(a.pose, idx)
@@ -190,7 +217,7 @@ def main() -> int:
     # unique prefix per run — never clobber a previous result
     stamp = int(time.time())
     prefix = f"poselab/vnccs_ui_{tag}_{stamp}"
-    wf = prep_workflow(pose_json, char_name, prefix)
+    wf = prep_workflow(pose_json, char_name, prefix, a.prompt)
 
     with media_lock(exclusive=False, wait_timeout=a.timeout + 300):
       with sync_playwright() as pw:

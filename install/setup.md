@@ -50,13 +50,15 @@ curl --fail --silent --show-error "$COMFYUI_URL/system_stats" >/dev/null \
 python3 -m pip install playwright
 ```
 
-路线④还需要可连接 CDP 的 `browser_client.py`；当前脚本会从
-`~/.openclaw/tools/browser/browser_client.py` 导入它。该适配器不包含在仓库内，OpenClaw 主机之外
-使用路线④时，需要自行提供等价适配器；路线①②不受影响。
+路线④还需要一个可连接的 CDP 浏览器。脚本优先导入 OpenClaw 适配器
+`~/.openclaw/tools/browser/browser_client.py`；没有该文件时退回仓库自带的
+`scripts/browser_fallback.py`：优先复用可连接的 CDP 端点（`COMFY_BROWSER_CDP`，
+默认 `http://127.0.0.1:18800`），否则用 Playwright 自带 Chromium 以临时配置启动无头
+实例（`COMFY_BROWSER_MODE=auto|attach|launch`），先执行 `playwright install chromium`。
 
-适配器启动 Chromium 时，在 Ubuntu 23.10+ 等用 AppArmor 限制非特权 user namespace 的系统上，
-需要加 `--no-sandbox`，否则 Chromium 启动即退出（`FATAL: No usable sandbox!`）。该浏览器只打开
-本机 ComfyUI 页面。
+在 Ubuntu 23.10+ 等用 AppArmor 限制非特权 user namespace 的系统上需要
+`--no-sandbox`，否则 Chromium 启动即退出（`FATAL: No usable sandbox!`）；
+回退脚本已内置该参数，浏览器只打开本机 ComfyUI 页面。
 
 ## 1. 底模（3 文件，必需）
 
@@ -156,16 +158,21 @@ python3 scripts/qwen_pose_test.py --mode t2i --name test --prompt "..." \
   --lora "qwen2_1-femaledVaginus-nsfw-v1_3-fine_L22-31.safetensors" \
   --out outputs/test.png
 
-# 路线④（需要一个 CDP 浏览器，默认连 127.0.0.1:18800）
+# 路线④（需要一个 CDP 浏览器，默认连 127.0.0.1:18800；无 OpenClaw 适配器时用自带 fallback）
 python3 scripts/run_vnccs_ui.py --list-poses
 python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
   --char references/src_standing.png
+# 场景提示词写入场景文档的 export.user_prompt（不设则用工作流默认模板）
+python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
+  --prompt "on a rooftop at night, city lights bokeh"
 ```
 
 环境变量（脚本内置默认值，按需覆盖）：
 `COMFYUI_URL`、`COMFYUI_INPUT`、`COMFYUI_OUTPUT`、`POSELAB`（本包根）、
 `QWEN_POSE_WORKFLOWS`（Qwen 工作流目录）、`VNCCS_WF_FILE`（VNCCS 工作流文件）、
 `VNCCS_POSELIB`（VNCCS 节点自带 PoseLibrary 目录）、`VNCCS_UI_OUT`（输出目录）。
+其中 `COMFYUI_INPUT` / `COMFYUI_OUTPUT` / `VNCCS_POSELIB` 默认从 `$COMFY` 推导；
+未设 `$COMFY` 时用 `~/ComfyUI`。
 
 ## 6. 安装自检清单
 

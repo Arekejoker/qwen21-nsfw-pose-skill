@@ -62,7 +62,7 @@ Outputs land under `./outputs/` (the scripts create directories as needed).
 | Path | Content |
 | --- | --- |
 | `SKILL.md` | this file |
-| `scripts/` | `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `make_custom_pose.py` (new pose from a library pose by bone rotation), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `validate_package.py` (offline package integrity check) |
+| `scripts/` | `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `make_custom_pose.py` (new pose from a library pose by bone rotation), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `browser_fallback.py` (standalone CDP fallback when the OpenClaw adapter is absent), `validate_package.py` (offline package integrity check) |
 | `workflows/` | `qwen21_t2i.json`, `qwen21_edit.json` (official Qwen-Image 2.1 graphs), `VNCCS_PoseStudio_QI2.1.json` |
 | `prompts/` | the 3 author prompts + `.params.json` (the exact local-test settings) |
 | `references/` | `pose_examples/` (L0/L1/L2 seaside examples), `src_standing.png` (default character for route ④) |
@@ -278,9 +278,9 @@ JSON → queue → collect outputs from disk. ~60–90 s each.
 # list all 136 poses with resolved file paths
 python3 scripts/run_vnccs_ui.py --list-poses
 
-# run one pose on a character image
+# run one pose on a character image (+ optional scene prompt)
 python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
-  [--char /absolute/face.png] [--timeout 900]
+  [--char /absolute/face.png] [--prompt "on a rooftop at night, city bokeh"] [--timeout 900]
 ```
 
 - `--pose` takes the name/slug case-insensitively (`crawling`, `Squatting
@@ -288,6 +288,17 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
   (`Standing A`, `CloseUp A`, …); qualify with `<repo>/<category>/<name>`
   (exact keys printed by `--list-poses`, e.g.
   `miuproject_vnccs_poselibrary_main/standing/standing_a`).
+- **Scene prompt (`--prompt`):** the capture prompt is rebuilt at execution
+  time from the scene document's `export` block (default template
+  `Draw character from image2\n<lighting>\n<user_prompt>`); `--prompt "..."`
+  injects `export.user_prompt` before the graph loads. Editing the
+  `TextEncodeQwenImage21` widget or adding `export.user_prompt` to a *library
+  pose file* has no effect. To change the scene of an existing route ④ result,
+  re-run it through route ② (`qwen_pose_test.py --mode edit`).
+- The runner reaches a CDP browser through the OpenClaw adapter when present,
+  otherwise through the bundled `scripts/browser_fallback.py` (reuses a
+  reachable `COMFY_BROWSER_CDP` endpoint, else launches a throwaway headless
+  Chromium; `COMFY_BROWSER_MODE=auto|attach|launch`).
 - The runner re-indexes the pose library on every call — newly downloaded poses
   are usable immediately. Each run writes `<pose>_<stamp>.meta.json` next to
   the outputs and never clobbers previous results (unique comfy prefix per run).
