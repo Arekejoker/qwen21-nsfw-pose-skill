@@ -54,7 +54,8 @@ if readme.is_file():
     image_paths = re.findall(r'<img\s+[^>]*src="([^"]+)"', readme.read_text(encoding="utf-8"))
     check(bool(image_paths), "README.md has no embedded showcase images")
     for image_path in image_paths:
-        check((ROOT / image_path).is_file(), f"README image does not exist: {image_path}")
+        local_path = image_path.split("?", 1)[0]  # strip cache-busting query
+        check((ROOT / local_path).is_file(), f"README image does not exist: {local_path}")
 
 for relative in (
     "SKILL.md",
