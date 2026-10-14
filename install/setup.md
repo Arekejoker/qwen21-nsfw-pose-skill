@@ -178,6 +178,9 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
 
 ## 6. 安装自检清单
 
+最省事的方式：先跑 `python3 scripts/doctor.py`（只读自检，逐项给修复指引，全绿即可用）。
+手动核对清单如下：
+
 - [ ] `curl --fail --silent --show-error "$COMFYUI_URL/object_info" >/dev/null` 成功
 - [ ] 按使用路线安装的 LoRA 出现在 `/object_info` 的 `LoraLoaderModelOnly` 选项里
 - [ ] `VNCCS_PoseStudio` 节点在 `/object_info` 里

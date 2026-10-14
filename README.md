@@ -42,7 +42,14 @@
 
 ## 快速开始（作者案例跟跑）
 
-前置安装见 [install/setup.md](install/setup.md)。装好后一条命令复刻作者淋浴样图（~5 分钟）：
+前置安装见 [install/setup.md](install/setup.md)。装好后先跑一次自检（只读，不改动任何东西）：
+
+```bash
+python3 scripts/doctor.py
+```
+
+它逐项检查 ComfyUI 连通性、底模/LoRA、VNCCS 节点、姿势库、浏览器后端，并给出缺失项的修复指引。
+全绿后一条命令复刻作者淋浴样图（~5 分钟）：
 
 ```bash
 python3 scripts/qwen_pose_test.py \
@@ -84,7 +91,7 @@ python3 scripts/qwen_pose_test.py \
 ```
 ├── SKILL.md            # agent 技能（完整规则）
 ├── install/setup.md    # 安装指南（模型/LoRA/节点/姿势库）
-├── scripts/            # 出图/自定义姿势脚本、浏览器 fallback、media_lock.py、validate_package.py
+├── scripts/            # doctor.py 自检、出图/自定义姿势脚本、浏览器 fallback、media_lock.py、validate_package.py
 ├── workflows/          # qwen21_t2i.json / qwen21_edit.json / VNCCS_PoseStudio_QI2.1.json
 ├── prompts/            # 3 篇作者原提示词 + 参数
 ├── references/         # 效果展示图（L0/L1/L2 海边对照）+ 默认人物图
