@@ -75,6 +75,19 @@ python3 scripts/qwen_pose_test.py \
 对比对象：`downloads/samples/taws_v13_shower_author.jpg`。
 完整元数据（提示词/参数/seed/完整工作流）：`downloads/samples/phase5_meta.json`。
 
+### 硬件要求（参考）
+
+底模为 Qwen-Image 2.1 int8 套件，模型文件合计约 16GB（diffusion 6.8GB / text encoder 8.7GB / VAE 0.6GB），LoRA 各自 ≤608MB。
+
+- **最低**：NVIDIA 12GB 显存 + 32GB 内存——能跑，ComfyUI 会自动把部分模型卸载到内存，出图慢一些
+- **推荐**：24GB 显存（3090/4090 级）+ 32–64GB 内存——模型基本常驻，体验最顺
+- **8GB 显存**：建议用 GGUF 量化版（社区实测 12–16GB 显存可跑 Q4；8GB 靠 offload 会明显更慢）
+- 纯 CPU 不推荐（单张图耗时过长）
+- 硬盘预留 ~40GB；CPU 无特殊要求（现代 x86_64/ARM 均可）；Linux 最省事，Windows 建议 WSL2，Mac 统一内存能跑但更慢
+- 路线④额外需要一个可连接的桌面浏览器（Playwright/CDP，见 `install/setup.md`）
+
+本仓库案例图与实测数据来自统一内存设备（DGX Spark）：1024×1024、40 步约 32 秒/张，峰值增量约 7–10GB。
+
 ## 三条路线
 
 | 需求 | 路线 | 命令 |
