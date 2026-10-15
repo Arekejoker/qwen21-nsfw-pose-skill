@@ -56,7 +56,10 @@ if readme.is_file():
     check(bool(image_paths), "README.md has no embedded showcase images")
     for image_path in image_paths:
         local_path = image_path.split("?", 1)[0]  # strip cache-busting query
-        check((ROOT / local_path).is_file(), f"README image does not exist: {local_path}")
+        target = ROOT / local_path
+        check(target.is_file(), f"README image does not exist: {local_path}")
+        if target.is_file():
+            check(target.stat().st_size > 0, f"empty README image: {local_path}")
 
 for relative in (
     "SKILL.md",

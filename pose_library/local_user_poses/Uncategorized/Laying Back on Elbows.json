@@ -765,6 +765,11 @@
     "asset_type": "pose",
     "repository": "local_user_poses",
     "category": "Uncategorized",
-    "tags": []
+    "tags": [
+      "front view",
+      "laying",
+      "elbows propped",
+      "knees bent"
+    ]
   }
 }
