@@ -46,6 +46,7 @@ for path in pose_jsons:
     check(path.with_suffix(".webp").is_file(), f"missing pose preview for {path.name}")
 for path in pose_previews:
     check(path.with_suffix(".json").is_file(), f"missing pose JSON for {path.name}")
+    check(path.stat().st_size > 0, f"empty pose preview file: {path.name}")
 
 readme = ROOT / "README.md"
 check(readme.is_file(), "missing README.md")
