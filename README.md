@@ -130,3 +130,7 @@ python3 scripts/qwen_pose_test.py \
 - 本仓库原创代码与文档（`scripts/`、`workflows/`、`prompts/`、`SKILL.md`、README 等）采用 [Apache License 2.0](LICENSE)
 - 第三方素材不在 Apache-2.0 覆盖范围内，权利归各自原作者：`downloads/samples/` 作者原图（Civitai 作者）、`pose_library/` 社区姿势与预览（MIUProject / Totemistyk，其中 Ballet 仓库为 MIT）、模型与 LoRA（HF `Comfy-Org/Qwen-Image-2.1`、Civitai 2986844 / 2958918 / 2988215、RunningHubAI、MIUProject 等）
 - NSFW 示例图仅供配方演示；仓库为公开仓库，介意图片的先收藏后阅读
+
+## 致谢
+
+本仓库的姿势控制能力（路线③④）与 136 姿势库基于 [AHEKOT](https://github.com/AHEKOT/ComfyUI_VNCCS_Utils)（VNCCS_Utils）、[Totemistyk](https://huggingface.co/Totemistyk)、[MIUProject](https://huggingface.co/MIUProject) 的开源工作；底模与 LoRA 来自 Qwen / Comfy-Org、RunningHubAI 及 Civitai 的 tawsLoRa、TheseAlpacas、posture-v3。感谢所有作者。
