@@ -41,10 +41,11 @@ curl --fail --silent --show-error "$COMFYUI_URL/system_stats" >/dev/null \
 | --- | --- |
 | 路线① T2I | 3 个底模 + 默认 NSFW LoRA |
 | 路线② Edit | 3 个底模；仅在需要脱衣编辑时再装 edit LoRA |
+| 路线③ 脚本姿势迁移 | 3 个底模 + VNCCS LoRA；需要一张 3D 人偶姿势渲染图（见 README 路线③）；无需浏览器 |
 | 路线④ VNCCS 精确姿势 | 3 个底模 + VNCCS 节点/LoRA + 姿势库 + Playwright/CDP 浏览器 |
 | 生成对比表 | 额外安装 `Pillow`：`python3 -m pip install Pillow` |
 
-路线①②只用 Python 标准库，无需 `pip install`。路线④需要 Playwright Python 包：
+路线①②③只用 Python 标准库，无需 `pip install`。路线④需要 Playwright Python 包：
 
 ```bash
 python3 -m pip install playwright
@@ -81,7 +82,7 @@ wget -c -P "$COMFY/models/vae" "https://hf-mirror.com/Comfy-Org/Qwen-Image-2.1/r
 | `thesealpacas-nsfw-v2.safetensors` (79.7M) | 路线①最露骨 | Civitai model `2958918` |
 | `nsfw-posture-v3.safetensors` (84M) | 路线①姿势增强 | Civitai model `2988215` |
 | `qwen21-nsfw-image-edit.safetensors` (84M) | 路线② | HF `RunningHubAI/rh-qwen-image-2.1-aio-nsfw-lora`（原 `RunningHubAI/Qwen-Image-2.1-NSFW-Image-Edit` 已失效；下载后改名） |
-| `VNCCS_QI2_PoseStudioV1.1.safetensors` (159M) | 路线④ | HF `MIUProject/VNCCS_PoseStudio_QI2.1` |
+| `VNCCS_QI2_PoseStudioV1.1.safetensors` (159M) | 路线③④ | HF `MIUProject/VNCCS_PoseStudio_QI2.1` |
 
 Civitai LoRA：打开对应模型页，选择表格里写明的版本和 `.safetensors` 文件，下载后放入
 `$COMFY/models/loras/`。**文件名需与表格一致**，否则提示词配方和脚本中的 LoRA 名称无法匹配。

@@ -51,8 +51,9 @@ python3 scripts/qwen_pose_test.py \
 | --- | --- | --- |
 | New sexy/NSFW image from a text idea | ① T2I + NSFW LoRA (mandatory) | `scripts/qwen_pose_test.py --mode t2i` |
 | Change pose of an existing character image (keep face/clothes) | ② Edit | `scripts/qwen_pose_test.py --mode edit` |
+| Change pose from a 3D mannequin render (script, no browser) | ③ Pose transfer | `scripts/run_pose_transfer.py` |
 | Exact pose from the 3D pose library (136 poses) | ④ VNCCS PoseStudio | `scripts/run_vnccs_ui.py` (browser automation) |
-| Do NOT use: a plain photo as pose reference — the model composites it as a second person or ignores it (tested) | | |
+| Do NOT use: a plain photo or illustration as pose reference — the model composites it as a second person, or redraws the reference person entirely (tested twice); use a textureless 3D mannequin render with route ③/④ instead | | |
 
 Outputs land under `./outputs/` (the scripts create directories as needed).
 
@@ -63,7 +64,7 @@ Outputs land under `./outputs/` (the scripts create directories as needed).
 | Path | Content |
 | --- | --- |
 | `SKILL.md` | this file |
-| `scripts/` | `doctor.py` (read-only environment self-check: ComfyUI, models, LoRAs, VNCCS, pose library, browser stack — every check degrades to WARN/SKIP with a fix hint), `qwen_pose_test.py` (routes ①②), `run_vnccs_ui.py` (route ④), `make_custom_pose.py` (new pose from a library pose by bone rotation), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `browser_fallback.py` (standalone CDP fallback when the OpenClaw adapter is absent), `validate_package.py` (offline package integrity check) |
+| `scripts/` | `doctor.py` (read-only environment self-check: ComfyUI, models, LoRAs, VNCCS, pose library, browser stack — every check degrades to WARN/SKIP with a fix hint), `qwen_pose_test.py` (routes ①②), `run_pose_transfer.py` (route ③: pose transfer from a 3D mannequin render, no browser), `run_vnccs_ui.py` (route ④), `make_custom_pose.py` (new pose from a library pose by bone rotation), `run_phase5.py` + `build_phase5_sheet.py` (case re-run & comparison sheet), `media_lock.py` (shared media lock, bundled), `browser_fallback.py` (standalone CDP fallback when the OpenClaw adapter is absent), `validate_package.py` (offline package integrity check) |
 | `workflows/` | `qwen21_t2i.json`, `qwen21_edit.json` (official Qwen-Image 2.1 graphs), `VNCCS_PoseStudio_QI2.1.json` |
 | `prompts/` | the 3 author prompts + `.params.json` (the exact local-test settings) |
 | `references/` | `pose_examples/` (L0/L1/L2 seaside examples), `src_standing.png` (default character for route ④) |
@@ -268,7 +269,35 @@ python3 scripts/qwen_pose_test.py \
 CFG 3 is more stable for edit mode. SFW instruction prompts keep NSFW LoRAs from
 triggering; add `--lora qwen21-nsfw-image-edit.safetensors` only when undressing.
 
-## 6. Route ④ — VNCCS PoseStudio (exact pose from the 3D library)
+## 6. Route ③ — Scripted pose transfer (3D mannequin reference)
+
+```bash
+python3 scripts/run_pose_transfer.py \
+  --char /absolute/character.png \
+  --pose-ref /absolute/doll_render.png \
+  --out outputs/pose_transfer.png [--seed N] [--steps 25]
+```
+
+The pose source must be a textureless **3D mannequin render** — e.g. the
+`doll_*.png` captures that route ④ saves under the ComfyUI output dir, or any
+3D poser render of the target pose. Photos and illustrations as pose references
+do NOT work: the model composites the reference person as a second person, or
+redraws the reference person entirely (retested 2026-10-16 — all variants
+failed).
+
+Verified recipe (2026-10-16) — the script sets it up automatically:
+
+- dual-image edit with **image 1 = mannequin** (pose) and **image 2 = character** (identity);
+- prompt `replace the pose of <image 2> with the pose of <image 1>. keep the character of <image 2>`;
+- **VNCCS PoseStudio LoRA @ 1.0 is mandatory** — without it the mannequin is
+  ignored entirely (3 no-LoRA controls);
+- 25 steps, cfg 1, euler/simple, 1024 px. Single person, identity kept, pose
+  follows the render; stable across seeds (sit ×3 seeds + crawling /
+  kneel-side / lean-back all passed). Camera framing can differ slightly from
+  the render; producing *new* mannequin renders still requires a route ④
+  browser session — route ③ reuses captures you already have.
+
+## 7. Route ④ — VNCCS PoseStudio (exact pose from the 3D library)
 
 The `VNCCS_PoseStudio` node needs the ComfyUI **web frontend** for its 3D "live
 capture"; the headless API fails with "Live capture timed out". So the runner
@@ -324,11 +353,11 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
   leg) come out front-facing and ambiguous — rotate the doll in the UI and
   re-run, or pick a pose that reads from the front.
 
-## 7. Environment & Safety
+## 8. Environment & Safety
 
 - ComfyUI as a service (original host: `systemctl --user status|restart
   comfyui.service`). After installing new custom nodes, one restart is required.
-- Both route scripts take the bundled media lock in shared mode
+- The route scripts take the bundled media lock in shared mode
   (`media_lock(exclusive=False, wait_timeout=...)`) so they don't fight video
   jobs on a shared machine; route ④ wraps the whole browser run in it.
 - On the original host, video tasks hold the lock exclusively (~06:45 / 09:00 /
@@ -341,7 +370,7 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
 - A 50-step 1152×1728 run takes ~200–400 s on the int8 model; a 30-step edit
   run ~60–120 s.
 
-## 8. Verification
+## 9. Verification
 
 1. Check the harness printed `ok: true` and the output file is non-empty.
 2. Visually inspect with an image-reading tool (composition, pose match,
@@ -350,7 +379,7 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
    original (`downloads/samples/*_author.jpg`; comparison-sheet
    example: `scripts/build_phase5_sheet.py`).
 4. Record prompt/seed/steps/LoRA in the run's `*.json` meta file (harnesses
-   write one automatically for routes ①②④).
+   write one automatically for routes ①②③④).
 5. When a recipe deviation was made (weaker prompt, no LoRA, fewer steps,
    default seed), label the output and state the deviation next to it in the
    delivery message.
@@ -358,10 +387,17 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
 Last full verification: 2026-10-12 — route ① (4 author-prompt reproductions),
 route ② (9/9 pose edits with identity preserved), route ④ (6 pose runs:
 crawling, kneeling side, leaning back, sitting side, squatting leaning back,
-arabesque — the last one verified for output only, pose-shape match unverified),
+arabesque — the last one verified for output only, pose-shape match unverified;
+its doll capture turned out to be a stale legacy capture),
 pose index count 136 == `GET /vnccs/pose_library/list`, pose-ladder A/B images
 in `references/pose_examples/`.
 
 Follow-up checks 2026-10-14: route ④ `--prompt` (scene follows the prompt, pose
 preserved), bundled browser fallback launch path, and custom pose creation via
 `scripts/make_custom_pose.py` (save + output verified).
+
+Follow-up checks 2026-10-16 (route ③): 6 mannequin-reference transfers passed
+(sit ×3 seeds, crawling, kneel-side, lean-back): single person, identity kept,
+pose follows the render; 3 no-LoRA controls ignored the mannequin; photo and
+illustration references still fail (composite / redraw of the reference
+person). Script `scripts/run_pose_transfer.py` added and end-to-end tested.
