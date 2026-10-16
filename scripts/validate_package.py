@@ -62,6 +62,7 @@ if readme.is_file():
             check(target.stat().st_size > 0, f"empty README image: {local_path}")
 
 for relative in (
+    "LICENSE",
     "SKILL.md",
     "install/setup.md",
     "references/src_standing.png",

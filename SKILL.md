@@ -1,6 +1,7 @@
 ---
 name: qwen21-nsfw-pose
 description: Use when generating sexy/NSFW or posed images with local Qwen-Image 2.1 — pose/NSFW LoRAs (tawsLoRa femaledVaginus, TheseAlpacas, posture-v3), pose transfer from an existing image, or exact pose control via VNCCS PoseStudio 3D pose library. Triggers: 性感姿势, 摆姿势, NSFW 出图, 换姿势, 姿势控制, pose transfer, pose lora, VNCCS, 人偶姿势, 姿势库. Independent of any general image-generation skill (which handles SFW text/edit/cutout work).
+license: Apache-2.0
 ---
 
 # Qwen-Image 2.1 NSFW / Pose Pipeline
