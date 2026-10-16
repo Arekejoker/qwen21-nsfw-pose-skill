@@ -98,7 +98,7 @@ python3 scripts/qwen_pose_test.py \
 | 指定 3D 姿势库里的精确姿势 | ④ VNCCS PoseStudio | `scripts/run_vnccs_ui.py --pose <name> [--prompt "<场景>"]` |
 
 路线③的人偶参考图可由路线④的运行自动保存（输出目录里的 `doll_*.png`），或任何 3D 姿态渲染图。
-不要用照片/插画当姿势参考——模型会把参考人物拼进画面或直接重画参考人物（路线③历史方案，已验证不可行）。
+不要用照片/插画当姿势参考——模型会把参考人物拼进画面，或直接重画参考人物；请使用无身份特征的 3D 人偶渲染图（路线③/④）。
 
 姿势怎么选（大胆度阶梯 L0–L3、用户要求→姿势族映射表）：见 `SKILL.md` §4，或
 `scripts/run_vnccs_ui.py --list-poses` 列出全部 136 个姿势。
