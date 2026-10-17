@@ -22,3 +22,18 @@ jobs:
           python-version: "3.12"
       - name: Validate package files
         run: python scripts/validate_package.py
+
+  static-checks-macos:
+    # Scripts are POSIX-only (fcntl) and documented for macOS; verify the
+    # offline package checks pass on Apple's runner too. GPU/ComfyUI parts
+    # still require real hardware — see the README macOS section.
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Validate package files
+        run: python3 scripts/validate_package.py

@@ -83,10 +83,19 @@ python3 scripts/qwen_pose_test.py \
 - **推荐**：24GB 显存（3090/4090 级）+ 32–64GB 内存——模型基本常驻，体验最顺
 - **8GB 显存**：建议用 GGUF 量化版（社区实测 12–16GB 显存可跑 Q4；8GB 靠 offload 会明显更慢）
 - 纯 CPU 不推荐（单张图耗时过长）
-- 硬盘预留 ~40GB；CPU 无特殊要求（现代 x86_64/ARM 均可）；Linux 最省事，Windows 建议 WSL2，Mac 统一内存能跑但更慢
+- 硬盘预留 ~40GB；CPU 无特殊要求（现代 x86_64/ARM 均可）；Linux 最省事，Windows 建议 WSL2；Mac（Apple Silicon）见下方单独小节
 - 路线④额外需要一个可连接的桌面浏览器（Playwright/CDP，见 `install/setup.md`）
 
 本仓库案例图与实测数据来自统一内存设备（DGX Spark）：1024×1024、40 步约 32 秒/张，峰值增量约 7–10GB。
+
+### macOS（Apple Silicon）
+
+- 适用 M 系芯片（M1 及以上）；Intel Mac 不建议
+- **模型选择看统一内存**：≥32GB 直接用本仓库原版 int8 套件（ComfyUI + MPS）；16–32GB 建议改用 GGUF 量化版（搭配 ComfyUI-GGUF；社区实测 Q8 更快、Q4 更省内存）
+- **速度预期：分钟级/张**——社区报告：M5 Pro 48GB 跑 int8 约 144 秒/1024；M1 Max 64GB 约 7–10 分钟/张（加缓存优化节点如 Comfyui-Spectrum-Qwen2.1 可提速 2–3 倍）。对比本仓库 DGX Spark 实测 32 秒/张，仅供参考
+- 已知坑：编辑模式在 MPS 上偶发 VAE 编码异常，可用 ComfyUI 的 `--cpu-vae` 绕过（ComfyUI issue #16433，已有修复讨论）；内存紧张时建议单张生成、关闭其他大内存应用
+- 路线兼容：①②③ 脚本在 macOS 可直接运行（纯 Python 标准库、POSIX 兼容）；④ 需 `playwright install chromium`（macOS 版），`install/setup.md` 中的 AppArmor 提示不适用
+- ⚠️ 以上 Mac 数据来自社区报告，维护者没有 Mac 硬件、未经实测；如果你在 Mac 上跑通或遇到问题，欢迎开 issue 反馈，我们会持续更新本说明
 
 ## 四条路线
 

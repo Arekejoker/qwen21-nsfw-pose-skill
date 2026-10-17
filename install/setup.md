@@ -3,7 +3,7 @@
 本包自带脚本、工作流、提示词、案例图与 55 个精选姿势；ComfyUI 侧还需要
 **3 个底模文件**。LoRA、VNCCS 节点和姿势库按你要用的路线选择安装，不必一次全下。
 
-本指南按 Linux 环境编写（脚本使用 POSIX `fcntl` 文件锁）；Python 需 3.10 或更新版本。硬件需求（显存/内存/硬盘）参考见 README 的「硬件要求」小节。
+本指南按 Linux 环境编写（脚本使用 POSIX `fcntl` 文件锁）；Python 需 3.10 或更新版本。硬件需求（显存/内存/硬盘）参考见 README 的「硬件要求」小节；macOS（Apple Silicon）用户另见 README 的「macOS（Apple Silicon）」小节。
 
 ## 0. 获取仓库并设置路径
 
