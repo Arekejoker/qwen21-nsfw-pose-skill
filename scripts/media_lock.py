@@ -13,20 +13,38 @@ Usage:
         ...
     with media_lock(exclusive=False, wait_timeout=1800):  # image gen
         ...
+
+POSIX uses fcntl.flock. On native Windows (no fcntl) it falls back to an
+atomic O_EXCL lock-file: there is no shared-lock primitive there, so shared
+callers also take the file; ComfyUI serialises queued jobs anyway, so this
+only adds a wait, never a conflict.
 """
 from __future__ import annotations
 
 import contextlib
-import fcntl
 import os
+import tempfile
 import time
 from pathlib import Path
 
-LOCK_FILE = Path(os.environ.get("MEDIA_LOCK_FILE", "/tmp/media-task.lock"))
+try:
+    import fcntl  # POSIX flock; absent on native Windows
+except ImportError:  # pragma: no cover - Windows
+    fcntl = None
+
+_DEFAULT_LOCK = os.path.join(tempfile.gettempdir(), "media-task.lock")
+LOCK_FILE = Path(os.environ.get("MEDIA_LOCK_FILE", _DEFAULT_LOCK))
 
 
 class MediaLockError(RuntimeError):
     """Raised when the media lock cannot be acquired in time."""
+
+
+def _busy_error(exclusive: bool) -> MediaLockError:
+    return MediaLockError(
+        f"media lock busy (exclusive={exclusive}): another "
+        f"video/image task is running"
+    )
 
 
 @contextlib.contextmanager
@@ -34,26 +52,46 @@ def media_lock(exclusive: bool, wait_timeout: int = 3600):
     """Acquire the media lock.
 
     exclusive=True  -> video render (blocks all image gen until finished)
-    exclusive=False -> image gen (shared; multiple concurrent images allowed)
+    exclusive=False -> image gen (shared; multiple concurrent images allowed
+                       on POSIX; serialised on Windows, see module docstring)
 
     Blocks up to wait_timeout seconds; raises MediaLockError on timeout.
     """
     LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    deadline = time.monotonic() + wait_timeout
+
+    if fcntl is None:  # Windows fallback: atomic lock-file creation
+        handle = None
+        while True:
+            try:
+                handle = os.open(
+                    LOCK_FILE, os.O_CREAT | os.O_EXCL | os.O_RDWR, 0o644
+                )
+                break
+            except FileExistsError:
+                if time.monotonic() >= deadline:
+                    raise _busy_error(exclusive) from None
+                time.sleep(2)
+        try:
+            yield
+        finally:
+            if handle is not None:
+                os.close(handle)
+                with contextlib.suppress(OSError):
+                    os.unlink(LOCK_FILE)
+        return
+
     mode = os.O_RDWR | os.O_CREAT
     f = os.open(LOCK_FILE, mode, 0o644)
     try:
         flags = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
-        deadline = time.monotonic() + wait_timeout
         while True:
             try:
                 fcntl.flock(f, flags | fcntl.LOCK_NB)
                 break
             except OSError:
                 if time.monotonic() >= deadline:
-                    raise MediaLockError(
-                        f"media lock busy (exclusive={exclusive}): another "
-                        f"video/image task is running — waited {wait_timeout}s"
-                    ) from None
+                    raise _busy_error(exclusive) from None
                 time.sleep(2)
         yield
     finally:
