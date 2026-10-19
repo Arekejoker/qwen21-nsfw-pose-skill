@@ -83,7 +83,7 @@ python3 scripts/qwen_pose_test.py \
 - **推荐**：24GB 显存（3090/4090 级）+ 32–64GB 内存——模型基本常驻，体验最顺
 - **8GB 显存**：建议用 GGUF 量化版（社区实测 12–16GB 显存可跑 Q4；8GB 靠 offload 会明显更慢）
 - 纯 CPU 不推荐（单张图耗时过长）
-- 硬盘预留 ~40GB；CPU 无特殊要求（现代 x86_64/ARM 均可）；Linux 最省事，Windows 建议 WSL2；Mac（Apple Silicon）见下方单独小节
+- 硬盘预留 ~40GB；CPU 无特殊要求（现代 x86_64/ARM 均可）；Linux 最省事；Windows 可原生运行基础脚本（doctor / `--list-poses` / 媒体锁回退，社区贡献），完整流程仍建议 WSL2；Mac（Apple Silicon）见下方单独小节
 - 路线④额外需要一个可连接的桌面浏览器（Playwright/CDP，见 `install/setup.md`）
 
 本仓库案例图与实测数据来自统一内存设备（DGX Spark）：1024×1024、40 步约 32 秒/张，峰值增量约 7–10GB。
