@@ -48,13 +48,16 @@ for path in pose_previews:
     check(path.with_suffix(".json").is_file(), f"missing pose JSON for {path.name}")
     check(path.stat().st_size > 0, f"empty pose preview file: {path.name}")
 
-readme = ROOT / "README.md"
-check(readme.is_file(), "missing README.md")
+readmes = [ROOT / "README.md", ROOT / "README.en.md"]
 image_paths: list[str] = []
-if readme.is_file():
-    image_paths = re.findall(r'<img\s+[^>]*src="([^"]+)"', readme.read_text(encoding="utf-8"))
-    check(bool(image_paths), "README.md has no embedded showcase images")
-    for image_path in image_paths:
+for readme in readmes:
+    check(readme.is_file(), f"missing {readme.name}")
+    if not readme.is_file():
+        continue
+    images = re.findall(r'<img\s+[^>]*src="([^"]+)"', readme.read_text(encoding="utf-8"))
+    image_paths.extend(images)
+    check(bool(images), f"{readme.name} has no embedded showcase images")
+    for image_path in images:
         local_path = image_path.split("?", 1)[0]  # strip cache-busting query
         target = ROOT / local_path
         check(target.is_file(), f"README image does not exist: {local_path}")

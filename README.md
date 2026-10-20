@@ -2,6 +2,8 @@
 
 [![Package checks](https://github.com/Arekejoker/qwen21-nsfw-pose-skill/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/Arekejoker/qwen21-nsfw-pose-skill/actions/workflows/validate.yml)
 
+[English](README.en.md) | 中文
+
 **Qwen-Image 2.1 本地 NSFW / 姿势出图完整配方** — 作者级提示词结构 + NSFW LoRA + 136 个 3D 姿势库 + VNCCS 人偶精确姿势控制。
 
 基于 ComfyUI + `qwen_image_2.1_int8_convrot` 底模（与 Civitai 作者同款底模），复刻并验证过 Civitai 作者样图（2026-10-12）。
@@ -125,6 +127,7 @@ python3 scripts/qwen_pose_test.py \
 
 ```
 ├── SKILL.md            # agent 技能（完整规则）
+├── CHANGELOG.md        # 版本变更记录
 ├── install/setup.md    # 安装指南（模型/LoRA/节点/姿势库）
 ├── scripts/            # doctor.py 自检、出图/自定义姿势脚本、浏览器 fallback、media_lock.py、validate_package.py
 ├── workflows/          # qwen21_t2i.json / qwen21_edit.json / VNCCS_PoseStudio_QI2.1.json
