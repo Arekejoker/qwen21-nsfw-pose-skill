@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -28,7 +29,8 @@ from qwen_pose_test import run, upload_image, MediaLockError  # noqa: E402
 
 DEFAULT_PROMPT = ("replace the pose of <image 2> with the pose of <image 1>. "
                   "keep the character of <image 2>")
-DEFAULT_LORA = "VNCCS_QI2_PoseStudioV1.1.safetensors"
+# VNCCS_LORA swaps the PoseStudio LoRA file (e.g. V2) without editing the script; --lora still wins
+DEFAULT_LORA = os.environ.get("VNCCS_LORA", "VNCCS_QI2_PoseStudioV1.1.safetensors")
 
 
 def _parse() -> argparse.Namespace:
