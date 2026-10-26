@@ -48,7 +48,7 @@ VNCCS_LIB = Path(os.environ.get("VNCCS_POSELIB", str(_COMFY / "custom_nodes" / "
 COMFY_INPUT = Path(os.environ.get("COMFYUI_INPUT", str(_COMFY / "input")))
 COMFY_OUTPUT = Path(os.environ.get("COMFYUI_OUTPUT", str(_COMFY / "output")))
 OUT = Path(os.environ.get("VNCCS_UI_OUT", str(_PKG_DIR / "outputs" / "vnccs_ui")))
-VNCCS_LORA = "VNCCS_QI2_PoseStudioV1.1.safetensors"
+VNCCS_LORA = os.environ.get("VNCCS_LORA", "VNCCS_QI2_PoseStudioV1.1.safetensors")
 URL = os.environ.get("COMFYUI_URL", "http://127.0.0.1:8188")
 
 # aliases used by the phase4b runs, kept so old commands still work

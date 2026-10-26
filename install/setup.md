@@ -173,7 +173,9 @@ python3 scripts/run_vnccs_ui.py --pose "squatting leaning back" \
 环境变量（脚本内置默认值，按需覆盖）：
 `COMFYUI_URL`、`COMFYUI_INPUT`、`COMFYUI_OUTPUT`、`POSELAB`（本包根）、
 `QWEN_POSE_WORKFLOWS`（Qwen 工作流目录）、`VNCCS_WF_FILE`（VNCCS 工作流文件）、
-`VNCCS_POSELIB`（VNCCS 节点自带 PoseLibrary 目录）、`VNCCS_UI_OUT`（输出目录）。
+`VNCCS_POSELIB`（VNCCS 节点自带 PoseLibrary 目录）、`VNCCS_UI_OUT`（输出目录）、
+`VNCCS_LORA`（路线③④用的 VNCCS PoseStudio LoRA 文件名，默认 `VNCCS_QI2_PoseStudioV1.1.safetensors`；
+换 V2 时设成 `VNCCS_QI2_PoseStudioV2.safetensors`，路线③的 `--lora` 优先于它）。
 其中 `COMFYUI_INPUT` / `COMFYUI_OUTPUT` / `VNCCS_POSELIB` 默认从 `$COMFY` 推导；
 未设 `$COMFY` 时用 `~/ComfyUI`。
 

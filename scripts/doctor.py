@@ -44,7 +44,7 @@ KNOWN_LORAS = [
     "thesealpacas-nsfw-v2.safetensors",
     "nsfw-posture-v3.safetensors",
     "qwen21-nsfw-image-edit.safetensors",
-    "VNCCS_QI2_PoseStudioV1.1.safetensors",
+    os.environ.get("VNCCS_LORA", "VNCCS_QI2_PoseStudioV1.1.safetensors"),
 ]
 PACKAGE_FILES = [
     "workflows/qwen21_t2i.json",

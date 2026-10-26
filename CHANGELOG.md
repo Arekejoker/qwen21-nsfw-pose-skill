@@ -4,6 +4,14 @@ Notable changes to this package. Format follows [Keep a Changelog](https://keepa
 versions are git tags. The package ships as a skill, not a library, so versions mark
 documented, reproducible states of the scripts + docs rather than an API contract.
 
+## [Unreleased]
+
+### Added
+
+- `VNCCS_LORA` environment variable: choose the VNCCS PoseStudio LoRA file for routes ③ and ④
+  (`run_pose_transfer.py`, `run_vnccs_ui.py`) and for the `doctor.py` LoRA check. The default is
+  still `VNCCS_QI2_PoseStudioV1.1.safetensors`. Route ③'s `--lora` flag still takes precedence.
+
 ## [1.1.0] — 2026-10-20
 
 Since 1.0.0: a new browser-free route, a self-check script, macOS and Windows support, and a
