@@ -87,7 +87,7 @@ Outputs land under `./outputs/` (the scripts create directories as needed).
 | `thesealpacas-nsfw-v2.safetensors` (79.7M) | most reveal, "influencer" face drift | Civitai model 2958918 |
 | `nsfw-posture-v3.safetensors` (84M) | strongest pose/body emphasis | Civitai model 2988215 |
 | `qwen21-nsfw-image-edit.safetensors` (84M) | edit-route undress/pose changes | HF `RunningHubAI/Qwen-Image-2.1-NSFW-Image-Edit` (mirror of oreolove "Nude Edit"; original Civitai page delisted) |
-| `VNCCS_QI2_PoseStudioV1.1.safetensors` (159M) | only for route ④ | HF `MIUProject/VNCCS_PoseStudio_QI2.1` (same repo as the workflow JSON) |
+| `VNCCS_QI2_PoseStudioV1.1.safetensors` (159M) | routes ③ and ④ (file name selectable via the `VNCCS_LORA` env var) | HF `MIUProject/VNCCS_PoseStudio_QI2.1` (same repo as the workflow JSON) |
 
 - **VNCCS_Utils custom node**: https://github.com/AHEKOT/ComfyUI_VNCCS_Utils →
   clone into `ComfyUI/custom_nodes/`, then restart ComfyUI once.
