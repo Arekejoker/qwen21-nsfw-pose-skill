@@ -73,6 +73,21 @@ python3 scripts/qwen_pose_test.py \
 Compare against `downloads/samples/taws_v13_shower_author.jpg`.
 Full metadata (prompt / parameters / seed / complete workflow): `downloads/samples/phase5_meta.json`.
 
+### Optional Monid example
+
+Monid provides access to Alibaba Cloud Wan 2.7 image generation with one API key, pay per call.
+The standalone [example](scripts/monid_image_example.py) prints provider output JSON:
+
+```bash
+export MONID_API_KEY="your-key"
+python3 scripts/monid_image_example.py --prompt "A watercolor forest landscape"
+```
+
+It handles asynchronous runs and reports provider errors. Download returned image URLs promptly;
+they expire after about 24 hours. Wan 2.7 is a separate model and does not reproduce the local
+Qwen-Image LoRA or VNCCS pose workflow. Existing commands and defaults are unchanged.
+[Docs](https://docs.monid.ai?utm_source=github&utm_medium=oss-pr&utm_campaign=arekejoker-qwen21-nsfw-pose-skill) · [Sign up](https://monid.ai?utm_source=github&utm_medium=oss-pr&utm_campaign=arekejoker-qwen21-nsfw-pose-skill&aid=OSS-PR)
+
 ### Hardware requirements (reference)
 
 The base kit is Qwen-Image 2.1 int8; model files total ~16GB (diffusion 6.8GB / text encoder 8.7GB / VAE 0.6GB), and each LoRA is ≤608MB.
